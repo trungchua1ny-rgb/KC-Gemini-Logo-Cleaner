@@ -49,6 +49,27 @@ class ProcessorTests(unittest.TestCase):
             cleaned = np.asarray(Image.open(output).convert("RGB"))
             self.assertTrue(np.array_equal(original[:200, :400], cleaned[:200, :400]))
 
+    def test_texture_patch_changes_logo_region_without_resizing(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "source.png"
+            output = root / "output.png"
+            self.create_test_image(source, size=(1376, 768))
+            original = np.asarray(Image.open(source).convert("RGB"))
+
+            result = process_image(source, output, MaskConfig())
+            cleaned = np.asarray(Image.open(output).convert("RGB"))
+            box = calculate_mask_box(1376, 768, MaskConfig())
+
+            self.assertEqual(result.status, "completed")
+            self.assertEqual(cleaned.shape, original.shape)
+            self.assertFalse(
+                np.array_equal(
+                    original[box.top : box.bottom, box.left : box.right],
+                    cleaned[box.top : box.bottom, box.left : box.right],
+                )
+            )
+
     def test_batch_preserves_subfolders_and_writes_report(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -71,4 +92,3 @@ class ProcessorTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

@@ -11,11 +11,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Xử lý hàng loạt logo góc phải dưới ảnh Gemini.")
     parser.add_argument("input", type=Path, help="Thư mục ảnh nguồn")
     parser.add_argument("--output", type=Path, help="Thư mục kết quả")
-    parser.add_argument("--width", type=float, default=4.8, help="Chiều rộng vùng logo theo %")
-    parser.add_argument("--height", type=float, default=6.4, help="Chiều cao vùng logo theo %")
-    parser.add_argument("--right", type=float, default=1.0, help="Lề phải theo %")
-    parser.add_argument("--bottom", type=float, default=1.2, help="Lề dưới theo %")
-    parser.add_argument("--padding", type=float, default=0.25, help="Padding theo cạnh ngắn, đơn vị %")
+    parser.add_argument("--width", type=float, default=4.0, help="Chiều rộng vùng logo theo %")
+    parser.add_argument("--height", type=float, default=7.5, help="Chiều cao vùng logo theo %")
+    parser.add_argument("--right", type=float, default=5.0, help="Lề phải theo %")
+    parser.add_argument("--bottom", type=float, default=9.3, help="Lề dưới theo %")
+    parser.add_argument("--padding", type=float, default=0.4, help="Padding theo cạnh ngắn, đơn vị %")
     parser.add_argument("--no-recursive", action="store_true", help="Không quét thư mục con")
     return parser
 
@@ -43,4 +43,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

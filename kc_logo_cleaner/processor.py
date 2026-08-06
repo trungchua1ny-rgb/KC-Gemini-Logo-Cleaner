@@ -48,6 +48,33 @@ def collect_images(source_dir: Path, output_dir: Path | None = None, recursive: 
 
 def create_mask(width: int, height: int, box: MaskBox, config: MaskConfig) -> np.ndarray:
     mask = np.zeros((height, width), dtype=np.uint8)
+    if config.shape == "gemini-sparkle":
+        center_x = (box.left + box.right) / 2
+        center_y = (box.top + box.bottom) / 2
+        half_width = box.width / 2
+        half_height = box.height / 2
+        normalized_points = (
+            (0.00, -1.00),
+            (0.17, -0.27),
+            (1.00, 0.00),
+            (0.17, 0.27),
+            (0.00, 1.00),
+            (-0.17, 0.27),
+            (-1.00, 0.00),
+            (-0.17, -0.27),
+        )
+        points = np.array(
+            [
+                [round(center_x + x * half_width), round(center_y + y * half_height)]
+                for x, y in normalized_points
+            ],
+            dtype=np.int32,
+        )
+        cv2.fillPoly(mask, [points], 255)
+        dilation = max(1, round(min(width, height) * 0.0025))
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (dilation * 2 + 1, dilation * 2 + 1))
+        return cv2.dilate(mask, kernel, iterations=1)
+
     if config.shape == "ellipse":
         center = ((box.left + box.right) // 2, (box.top + box.bottom) // 2)
         axes = (max(1, box.width // 2), max(1, box.height // 2))
@@ -79,15 +106,117 @@ def create_mask(width: int, height: int, box: MaskBox, config: MaskConfig) -> np
     return mask
 
 
+def texture_patch_fill(rgb_array: np.ndarray, box: MaskBox, feather_radius: int) -> np.ndarray:
+    """Replace the logo box with the best matching nearby texture patch.
+
+    Gemini places the visible mark over the final pixels. Copying a nearby
+    patch whose surrounding border matches the destination preserves lines and
+    textures better than diffusion-style OpenCV inpainting for this small,
+    fixed corner region.
+    """
+    source = rgb_array.astype(np.float32)
+    height, width = source.shape[:2]
+    left, top = box.left, box.top
+    patch_width = box.width
+    patch_height = box.height
+    gray = cv2.cvtColor(rgb_array, cv2.COLOR_RGB2GRAY).astype(np.float32)
+
+    scale = max(0.5, min(width / 1376, height / 768))
+    gap = max(3, round(8 * scale))
+    ring = max(2, round(5 * scale))
+    step = max(2, round(4 * scale))
+    search_x = min(round(width * 0.28), max(100, round(320 * scale)))
+    search_y = min(round(height * 0.45), max(100, round(320 * scale)))
+
+    def boundary_strips(array: np.ndarray, x: int, y: int) -> tuple[np.ndarray, ...]:
+        return (
+            array[y - gap - ring : y - gap, x : x + patch_width],
+            array[y + patch_height + gap : y + patch_height + gap + ring, x : x + patch_width],
+            array[y : y + patch_height, x - gap - ring : x - gap],
+            array[y : y + patch_height, x + patch_width + gap : x + patch_width + gap + ring],
+        )
+
+    if (
+        left - gap - ring < 0
+        or top - gap - ring < 0
+        or left + patch_width + gap + ring >= width
+        or top + patch_height + gap + ring >= height
+    ):
+        raise ValueError("Ảnh quá nhỏ để tự động tìm vùng nền thay thế.")
+
+    target_strips = boundary_strips(gray, left, top)
+    best_score = float("inf")
+    best_position: tuple[int, int] | None = None
+
+    for offset_y in range(-search_y, search_y // 2 + 1, step):
+        for offset_x in range(-search_x, search_x // 2 + 1, step):
+            if abs(offset_x) < patch_width + gap and abs(offset_y) < patch_height + gap:
+                continue
+            candidate_x = left + offset_x
+            candidate_y = top + offset_y
+            if (
+                candidate_x - gap - ring < 0
+                or candidate_y - gap - ring < 0
+                or candidate_x + patch_width + gap + ring >= width
+                or candidate_y + patch_height + gap + ring >= height
+            ):
+                continue
+
+            candidate_strips = boundary_strips(gray, candidate_x, candidate_y)
+            score = sum(
+                float(np.mean((target - candidate) ** 2))
+                for target, candidate in zip(target_strips, candidate_strips)
+            )
+            score *= 1 + 0.00035 * (abs(offset_x) + abs(offset_y))
+            if score < best_score:
+                best_score = score
+                best_position = (candidate_x, candidate_y)
+
+    if best_position is None:
+        raise ValueError("Không tìm thấy vùng nền phù hợp để thay logo.")
+
+    candidate_x, candidate_y = best_position
+    replacement = source[
+        candidate_y : candidate_y + patch_height,
+        candidate_x : candidate_x + patch_width,
+    ]
+    destination = source[top : top + patch_height, left : left + patch_width]
+
+    edge = max(3, feather_radius * 2 + 2)
+    y_grid, x_grid = np.mgrid[0:patch_height, 0:patch_width]
+    alpha = np.minimum.reduce(
+        (
+            np.clip((x_grid + 1) / edge, 0, 1),
+            np.clip((patch_width - x_grid) / edge, 0, 1),
+            np.clip((y_grid + 1) / edge, 0, 1),
+            np.clip((patch_height - y_grid) / edge, 0, 1),
+        )
+    )[:, :, np.newaxis]
+
+    result = source.copy()
+    result[top : top + patch_height, left : left + patch_width] = (
+        replacement * alpha + destination * (1.0 - alpha)
+    )
+    return np.clip(result, 0, 255).astype(np.uint8)
+
+
 def clean_array(rgb_array: np.ndarray, config: MaskConfig) -> tuple[np.ndarray, MaskBox]:
     if rgb_array.ndim != 3 or rgb_array.shape[2] != 3:
         raise ValueError("Ảnh đầu vào phải ở định dạng RGB.")
 
     height, width = rgb_array.shape[:2]
     box = calculate_mask_box(width, height, config)
+    if config.method == "texture-patch":
+        try:
+            return texture_patch_fill(rgb_array, box, config.feather_radius), box
+        except ValueError:
+            # Very small images may not have enough surrounding pixels. Fall
+            # back to the lightweight local inpainting engine.
+            pass
+
     mask = create_mask(width, height, box, config)
     bgr = cv2.cvtColor(rgb_array, cv2.COLOR_RGB2BGR)
-    method = cv2.INPAINT_TELEA if config.method == "telea" else cv2.INPAINT_NS
+    method = cv2.INPAINT_NS if config.method == "navier-stokes" else cv2.INPAINT_TELEA
     repaired = cv2.inpaint(bgr, mask, config.inpaint_radius, method)
 
     if config.feather_radius > 0:

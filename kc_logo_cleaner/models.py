@@ -5,20 +5,22 @@ from pathlib import Path
 from typing import Literal
 
 
-InpaintMethod = Literal["telea", "navier-stokes"]
-MaskShape = Literal["rounded-rectangle", "ellipse"]
+InpaintMethod = Literal["texture-patch", "telea", "navier-stokes"]
+MaskShape = Literal["gemini-sparkle", "rounded-rectangle", "ellipse"]
 
 
 @dataclass(frozen=True)
 class MaskConfig:
-    width_percent: float = 4.8
-    height_percent: float = 6.4
-    right_margin_percent: float = 1.0
-    bottom_margin_percent: float = 1.2
-    padding_percent: float = 0.25
+    # Calibrated from real 1376×768 Gemini/Google Flow image outputs.
+    # The values remain proportional for other output resolutions.
+    width_percent: float = 4.0
+    height_percent: float = 7.5
+    right_margin_percent: float = 5.0
+    bottom_margin_percent: float = 9.3
+    padding_percent: float = 0.4
     inpaint_radius: float = 4.0
     feather_radius: int = 3
-    method: InpaintMethod = "telea"
+    method: InpaintMethod = "texture-patch"
     shape: MaskShape = "rounded-rectangle"
 
     def validate(self) -> None:
@@ -64,4 +66,3 @@ class ProcessingResult:
             "height": self.height,
             "error": self.error,
         }
-

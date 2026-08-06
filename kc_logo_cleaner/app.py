@@ -37,13 +37,13 @@ class LogoCleanerApp(tk.Tk):
         self.source_var = tk.StringVar()
         self.output_var = tk.StringVar()
         self.recursive_var = tk.BooleanVar(value=True)
-        self.width_var = tk.DoubleVar(value=4.8)
-        self.height_var = tk.DoubleVar(value=6.4)
-        self.right_var = tk.DoubleVar(value=1.0)
-        self.bottom_var = tk.DoubleVar(value=1.2)
-        self.padding_var = tk.DoubleVar(value=0.25)
+        self.width_var = tk.DoubleVar(value=4.0)
+        self.height_var = tk.DoubleVar(value=7.5)
+        self.right_var = tk.DoubleVar(value=5.0)
+        self.bottom_var = tk.DoubleVar(value=9.3)
+        self.padding_var = tk.DoubleVar(value=0.4)
         self.radius_var = tk.DoubleVar(value=4.0)
-        self.method_var = tk.StringVar(value="telea")
+        self.method_var = tk.StringVar(value="texture-patch")
         self.shape_var = tk.StringVar(value="rounded-rectangle")
         self.status_var = tk.StringVar(value="Chọn thư mục ảnh để bắt đầu.")
         self.progress_var = tk.DoubleVar(value=0)
@@ -106,40 +106,64 @@ class LogoCleanerApp(tk.Tk):
 
         settings = ttk.Frame(body, style="Panel.TFrame", padding=16)
         settings.grid(row=0, column=0, sticky="nsew", padx=(0, 12))
-        ttk.Label(settings, text="VÙNG LOGO", style="CardTitle.TLabel").pack(anchor="w", pady=(0, 10))
+        ttk.Label(settings, text="TỰ ĐỘNG XÁC ĐỊNH LOGO", style="CardTitle.TLabel").pack(anchor="w", pady=(0, 10))
         ttk.Label(
             settings,
-            text="Preset mặc định dành cho logo Gemini ở góc phải dưới. Điều chỉnh nếu khung đỏ chưa phủ hết logo.",
+            text="Không cần bấm chọn điểm. App tự dùng vị trí chuẩn của logo Gemini ở góc phải dưới và co giãn theo độ phân giải ảnh.",
             style="PanelMuted.TLabel",
             wraplength=245,
             justify="left",
         ).pack(anchor="w", pady=(0, 12))
 
-        self._number_field(settings, "Chiều rộng (%)", self.width_var, 0.1)
-        self._number_field(settings, "Chiều cao (%)", self.height_var, 0.1)
-        self._number_field(settings, "Lề phải (%)", self.right_var, 0.1)
-        self._number_field(settings, "Lề dưới (%)", self.bottom_var, 0.1)
-        self._number_field(settings, "Padding (%)", self.padding_var, 0.05)
-        self._number_field(settings, "Bán kính phục hồi", self.radius_var, 0.5)
-
-        ttk.Label(settings, text="Hình dạng mask", style="Panel.TLabel").pack(anchor="w", pady=(8, 3))
-        shape = ttk.Combobox(
+        badge = tk.Label(
             settings,
+            text="✓  PRESET GEMINI ĐÃ HIỆU CHỈNH",
+            bg="#0D2A22",
+            fg=SUCCESS,
+            font=("Segoe UI Semibold", 9),
+            padx=10,
+            pady=8,
+        )
+        badge.pack(fill="x", pady=(0, 10))
+        ttk.Label(
+            settings,
+            text="Vị trí chuẩn: tâm khoảng 93% chiều rộng và 87% chiều cao ảnh.",
+            style="PanelMuted.TLabel",
+            wraplength=245,
+            justify="left",
+        ).pack(anchor="w", pady=(0, 14))
+        ttk.Button(settings, text="Xem lại kết quả tự động", command=self.update_preview).pack(fill="x")
+        self.advanced_button = ttk.Button(
+            settings,
+            text="Tinh chỉnh nâng cao (dự phòng)",
+            command=self.toggle_advanced,
+        )
+        self.advanced_button.pack(fill="x", pady=(8, 0))
+
+        self.advanced_frame = ttk.Frame(settings, style="Panel.TFrame")
+        self._number_field(self.advanced_frame, "Chiều rộng (%)", self.width_var, 0.1)
+        self._number_field(self.advanced_frame, "Chiều cao (%)", self.height_var, 0.1)
+        self._number_field(self.advanced_frame, "Lề phải (%)", self.right_var, 0.1)
+        self._number_field(self.advanced_frame, "Lề dưới (%)", self.bottom_var, 0.1)
+        self._number_field(self.advanced_frame, "Padding (%)", self.padding_var, 0.05)
+        self._number_field(self.advanced_frame, "Bán kính phục hồi", self.radius_var, 0.5)
+        ttk.Label(self.advanced_frame, text="Hình dạng mask", style="Panel.TLabel").pack(anchor="w", pady=(8, 3))
+        shape = ttk.Combobox(
+            self.advanced_frame,
             textvariable=self.shape_var,
-            values=("rounded-rectangle", "ellipse"),
+            values=("gemini-sparkle", "rounded-rectangle", "ellipse"),
             state="readonly",
         )
         shape.pack(fill="x")
-        ttk.Label(settings, text="Thuật toán", style="Panel.TLabel").pack(anchor="w", pady=(8, 3))
+        ttk.Label(self.advanced_frame, text="Thuật toán", style="Panel.TLabel").pack(anchor="w", pady=(8, 3))
         method = ttk.Combobox(
-            settings,
+            self.advanced_frame,
             textvariable=self.method_var,
-            values=("telea", "navier-stokes"),
+            values=("texture-patch", "telea", "navier-stokes"),
             state="readonly",
         )
         method.pack(fill="x")
-        ttk.Button(settings, text="Cập nhật xem thử", command=self.update_preview).pack(fill="x", pady=(16, 0))
-        ttk.Button(settings, text="Khôi phục preset Gemini", command=self.reset_preset).pack(fill="x", pady=(8, 0))
+        ttk.Button(self.advanced_frame, text="Khôi phục preset Gemini", command=self.reset_preset).pack(fill="x", pady=(10, 0))
 
         preview = ttk.Frame(body, style="Panel.TFrame", padding=16)
         preview.grid(row=0, column=1, sticky="nsew")
@@ -150,7 +174,7 @@ class LogoCleanerApp(tk.Tk):
         self.file_selector = ttk.Combobox(preview, state="readonly")
         self.file_selector.grid(row=0, column=1, sticky="ew", padx=(12, 0))
         self.file_selector.bind("<<ComboboxSelected>>", lambda _event: self.update_preview())
-        ttk.Label(preview, text="Ảnh gốc · vùng đỏ sẽ được phục hồi", style="PanelMuted.TLabel").grid(
+        ttk.Label(preview, text="Ảnh gốc · app tự xác định vùng logo", style="PanelMuted.TLabel").grid(
             row=1, column=0, sticky="w", pady=(10, 6)
         )
         ttk.Label(preview, text="Kết quả dự kiến", style="PanelMuted.TLabel").grid(
@@ -246,15 +270,23 @@ class LogoCleanerApp(tk.Tk):
         )
 
     def reset_preset(self) -> None:
-        self.width_var.set(4.8)
-        self.height_var.set(6.4)
-        self.right_var.set(1.0)
-        self.bottom_var.set(1.2)
-        self.padding_var.set(0.25)
+        self.width_var.set(4.0)
+        self.height_var.set(7.5)
+        self.right_var.set(5.0)
+        self.bottom_var.set(9.3)
+        self.padding_var.set(0.4)
         self.radius_var.set(4.0)
-        self.method_var.set("telea")
+        self.method_var.set("texture-patch")
         self.shape_var.set("rounded-rectangle")
         self.update_preview()
+
+    def toggle_advanced(self) -> None:
+        if self.advanced_frame.winfo_manager():
+            self.advanced_frame.pack_forget()
+            self.advanced_button.configure(text="Tinh chỉnh nâng cao (dự phòng)")
+        else:
+            self.advanced_frame.pack(fill="x", pady=(10, 0))
+            self.advanced_button.configure(text="Ẩn tinh chỉnh nâng cao")
 
     def scan_images(self) -> None:
         try:

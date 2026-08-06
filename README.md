@@ -10,8 +10,10 @@ Công cụ Windows nhỏ gọn để xử lý hàng loạt **logo nhìn thấy �
 - Có thể quét cả thư mục con và giữ nguyên cấu trúc folder.
 - Vùng logo được tính theo tỷ lệ ảnh nên hoạt động với nhiều độ phân giải.
 - Xem trước vùng mask và kết quả trước khi chạy hàng loạt.
-- Điều chỉnh kích thước logo, lề phải, lề dưới và padding.
-- Hai thuật toán OpenCV: Telea và Navier–Stokes.
+- Tự xác định vị trí logo Gemini ở góc phải dưới; không cần bấm chọn điểm.
+- Có phần tinh chỉnh nâng cao dự phòng nếu Google thay đổi mẫu logo.
+- Mặc định tự tìm mảng nền tương đồng gần logo để giữ đường nét và texture.
+- Có Telea và Navier–Stokes làm phương án dự phòng cho ảnh quá nhỏ.
 - Có thể dừng batch sau ảnh đang xử lý.
 - Ảnh gốc không bị ghi đè.
 - Tạo `processing-report.json` sau mỗi lần chạy.
@@ -25,8 +27,8 @@ Yêu cầu: Python 3.10 trở lên.
 2. Bấm đúp `run.bat`.
 3. Lần đầu công cụ tự tạo `.venv` và cài thư viện.
 4. Chọn thư mục ảnh nguồn.
-5. Kiểm tra khung đỏ đã phủ hết logo trên một vài ảnh.
-6. Bấm **Xử lý toàn bộ ảnh**.
+5. Xem nhanh kết quả tự động trên một vài ảnh.
+6. Bấm **Xử lý toàn bộ ảnh**; không cần chọn điểm logo.
 
 Kết quả mặc định nằm trong:
 
@@ -38,14 +40,15 @@ Kết quả mặc định nằm trong:
 
 Preset ban đầu dành cho logo nhỏ ở góc phải dưới:
 
-- Chiều rộng: 4.8% ảnh.
-- Chiều cao: 6.4% ảnh.
-- Lề phải: 1.0%.
-- Lề dưới: 1.2%.
-- Padding: 0.25% cạnh ngắn.
-- Thuật toán: Telea.
+- Chiều rộng: 4.0% ảnh.
+- Chiều cao: 7.5% ảnh.
+- Lề phải: 5.0%.
+- Lề dưới: 9.3%.
+- Padding: 0.4% cạnh ngắn.
+- Mask dự phòng: hình chữ nhật bo góc.
+- Thuật toán mặc định: Texture Patch tự động.
 
-Nếu khung đỏ chưa phủ hết logo, tăng chiều rộng/chiều cao hoặc padding. Nếu vùng xử lý quá lớn, giảm các giá trị đó. Nên kiểm tra trước trên ảnh có nền phức tạp.
+Các giá trị này được hiệu chỉnh từ ảnh Gemini/Google Flow 1376×768 thực tế và tự co giãn theo độ phân giải. Chỉ mở **Tinh chỉnh nâng cao** nếu Google thay đổi vị trí logo trong tương lai.
 
 ## Dòng lệnh
 
@@ -78,5 +81,4 @@ dist\KC Gemini Logo Cleaner\
 - Kết quả tốt nhất khi logo nhỏ và nằm cố định ở góc phải dưới.
 - Nền có chữ nhỏ, khuôn mặt hoặc đường nét rất phức tạp có thể cần điều chỉnh mask và kiểm tra thủ công.
 - Công cụ không tự suy đoán logo ở vị trí khác.
-- Phiên bản nhẹ này sử dụng OpenCV; chưa đóng gói mô hình LaMa dung lượng lớn.
-
+- Phiên bản nhẹ này dùng tìm kiếm texture cục bộ kết hợp OpenCV; chưa đóng gói mô hình LaMa dung lượng lớn.
