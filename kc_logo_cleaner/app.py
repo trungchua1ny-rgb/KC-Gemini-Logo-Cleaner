@@ -258,6 +258,8 @@ class LogoCleanerApp(tk.Tk):
 
     def scan_images(self) -> None:
         try:
+            if not self.source_var.get().strip():
+                raise ValueError("Hãy chọn thư mục ảnh nguồn.")
             source = Path(self.source_var.get()).expanduser()
             output = Path(self.output_var.get()).expanduser() if self.output_var.get() else source / "KC_Logo_Cleaned"
             self.image_paths = collect_images(source, output, self.recursive_var.get())
@@ -315,6 +317,10 @@ class LogoCleanerApp(tk.Tk):
         if self.worker and self.worker.is_alive():
             return
         try:
+            if not self.source_var.get().strip():
+                raise ValueError("Hãy chọn thư mục ảnh nguồn.")
+            if not self.output_var.get().strip():
+                raise ValueError("Hãy chọn thư mục kết quả.")
             source = Path(self.source_var.get()).expanduser().resolve()
             output = Path(self.output_var.get()).expanduser().resolve()
             config = self._config()

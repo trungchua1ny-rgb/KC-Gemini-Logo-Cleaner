@@ -104,8 +104,12 @@ def load_image(path: Path) -> tuple[Image.Image, dict[str, object]]:
         metadata: dict[str, object] = {}
         if "icc_profile" in opened.info:
             metadata["icc_profile"] = opened.info["icc_profile"]
-        if "exif" in opened.info:
-            metadata["exif"] = opened.info["exif"]
+        exif = opened.getexif()
+        if exif:
+            # Pixels are physically rotated below, so the old orientation tag
+            # must not rotate the saved output a second time.
+            exif.pop(274, None)
+            metadata["exif"] = exif.tobytes()
         transposed = ImageOps.exif_transpose(opened)
         return transposed.copy(), metadata
 
