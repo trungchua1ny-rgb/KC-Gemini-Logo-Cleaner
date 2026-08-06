@@ -11,6 +11,7 @@ import numpy as np
 from PIL import Image, ImageOps
 
 from .geometry import MaskBox, calculate_mask_box
+from .lama_engine import LamaModelError, lama_inpaint
 from .models import MaskConfig, ProcessingResult
 
 
@@ -206,6 +207,17 @@ def clean_array(rgb_array: np.ndarray, config: MaskConfig) -> tuple[np.ndarray, 
 
     height, width = rgb_array.shape[:2]
     box = calculate_mask_box(width, height, config)
+    mask = create_mask(width, height, box, config)
+    if config.method == "lama-ai":
+        try:
+            return lama_inpaint(rgb_array, mask, box, config.feather_radius), box
+        except LamaModelError:
+            # The offline fallback still returns a usable result when the
+            # model cannot be downloaded or initialized.
+            try:
+                return texture_patch_fill(rgb_array, box, config.feather_radius), box
+            except ValueError:
+                pass
     if config.method == "texture-patch":
         try:
             return texture_patch_fill(rgb_array, box, config.feather_radius), box
@@ -214,7 +226,6 @@ def clean_array(rgb_array: np.ndarray, config: MaskConfig) -> tuple[np.ndarray, 
             # back to the lightweight local inpainting engine.
             pass
 
-    mask = create_mask(width, height, box, config)
     bgr = cv2.cvtColor(rgb_array, cv2.COLOR_RGB2BGR)
     method = cv2.INPAINT_NS if config.method == "navier-stokes" else cv2.INPAINT_TELEA
     repaired = cv2.inpaint(bgr, mask, config.inpaint_radius, method)

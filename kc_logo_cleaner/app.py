@@ -43,7 +43,7 @@ class LogoCleanerApp(tk.Tk):
         self.bottom_var = tk.DoubleVar(value=9.3)
         self.padding_var = tk.DoubleVar(value=0.4)
         self.radius_var = tk.DoubleVar(value=4.0)
-        self.method_var = tk.StringVar(value="texture-patch")
+        self.method_var = tk.StringVar(value="lama-ai")
         self.shape_var = tk.StringVar(value="rounded-rectangle")
         self.status_var = tk.StringVar(value="Chọn thư mục ảnh để bắt đầu.")
         self.progress_var = tk.DoubleVar(value=0)
@@ -125,6 +125,16 @@ class LogoCleanerApp(tk.Tk):
             pady=8,
         )
         badge.pack(fill="x", pady=(0, 10))
+        ai_badge = tk.Label(
+            settings,
+            text="AI LAMA · PHỤC HỒI VẬT THỂ TỰ NHIÊN",
+            bg="#0B2340",
+            fg="#6DB5FF",
+            font=("Segoe UI Semibold", 9),
+            padx=10,
+            pady=8,
+        )
+        ai_badge.pack(fill="x", pady=(0, 10))
         ttk.Label(
             settings,
             text="Vị trí chuẩn: tâm khoảng 93% chiều rộng và 87% chiều cao ảnh.",
@@ -155,11 +165,11 @@ class LogoCleanerApp(tk.Tk):
             state="readonly",
         )
         shape.pack(fill="x")
-        ttk.Label(self.advanced_frame, text="Thuật toán", style="Panel.TLabel").pack(anchor="w", pady=(8, 3))
+        ttk.Label(self.advanced_frame, text="Thuật toán (mặc định: lama-ai)", style="Panel.TLabel").pack(anchor="w", pady=(8, 3))
         method = ttk.Combobox(
             self.advanced_frame,
             textvariable=self.method_var,
-            values=("texture-patch", "telea", "navier-stokes"),
+            values=("lama-ai", "texture-patch", "telea", "navier-stokes"),
             state="readonly",
         )
         method.pack(fill="x")
@@ -276,7 +286,7 @@ class LogoCleanerApp(tk.Tk):
         self.bottom_var.set(9.3)
         self.padding_var.set(0.4)
         self.radius_var.set(4.0)
-        self.method_var.set("texture-patch")
+        self.method_var.set("lama-ai")
         self.shape_var.set("rounded-rectangle")
         self.update_preview()
 

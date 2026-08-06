@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Literal
 
 
-InpaintMethod = Literal["texture-patch", "telea", "navier-stokes"]
+InpaintMethod = Literal["lama-ai", "texture-patch", "telea", "navier-stokes"]
 MaskShape = Literal["gemini-sparkle", "rounded-rectangle", "ellipse"]
 
 
@@ -20,7 +20,7 @@ class MaskConfig:
     padding_percent: float = 0.4
     inpaint_radius: float = 4.0
     feather_radius: int = 3
-    method: InpaintMethod = "texture-patch"
+    method: InpaintMethod = "lama-ai"
     shape: MaskShape = "rounded-rectangle"
 
     def validate(self) -> None:

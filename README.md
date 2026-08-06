@@ -1,22 +1,20 @@
 # KC Gemini Logo Cleaner
 
-Công cụ Windows nhỏ gọn để xử lý hàng loạt **logo nhìn thấy ở góc phải dưới** ảnh do Gemini/Nano Banana tạo. Công cụ chạy hoàn toàn trên máy, không tải ảnh lên website và không chỉnh sửa ảnh nguồn.
+Công cụ Windows xử lý hàng loạt logo nhìn thấy ở góc phải dưới ảnh do Gemini/Nano Banana tạo. Ảnh được xử lý trên máy và file nguồn không bị chỉnh sửa.
 
-> Phạm vi: chỉ xử lý dấu/logo nhìn thấy. Công cụ không tìm cách xóa SynthID ẩn hoặc thay đổi nguồn gốc nội dung AI. Chỉ sử dụng với ảnh bạn có quyền chỉnh sửa.
+> Phạm vi: chỉ xử lý dấu/logo nhìn thấy. Công cụ không xóa SynthID ẩn hoặc thay đổi nguồn gốc nội dung AI. Chỉ sử dụng với ảnh bạn có quyền chỉnh sửa.
 
 ## Tính năng
 
-- Chọn một thư mục và xử lý PNG, JPG, JPEG, WebP, BMP hoặc TIFF.
-- Có thể quét cả thư mục con và giữ nguyên cấu trúc folder.
-- Vùng logo được tính theo tỷ lệ ảnh nên hoạt động với nhiều độ phân giải.
-- Xem trước vùng mask và kết quả trước khi chạy hàng loạt.
-- Tự xác định vị trí logo Gemini ở góc phải dưới; không cần bấm chọn điểm.
-- Có phần tinh chỉnh nâng cao dự phòng nếu Google thay đổi mẫu logo.
-- Mặc định tự tìm mảng nền tương đồng gần logo để giữ đường nét và texture.
-- Có Telea và Navier–Stokes làm phương án dự phòng cho ảnh quá nhỏ.
-- Có thể dừng batch sau ảnh đang xử lý.
-- Ảnh gốc không bị ghi đè.
-- Tạo `processing-report.json` sau mỗi lần chạy.
+- Xử lý PNG, JPG, JPEG, WebP, BMP và TIFF theo thư mục.
+- Quét thư mục con và giữ nguyên cấu trúc thư mục đầu ra.
+- Tự xác định vùng logo Gemini góc phải dưới, co giãn theo độ phân giải; không cần bấm chọn điểm.
+- AI LaMa inpainting dùng vùng ngữ cảnh rộng để phục hồi vật thể, đường nét và texture tự nhiên hơn.
+- Chỉ compositing vùng mask; các pixel ngoài vùng xử lý được giữ nguyên.
+- Model AI khoảng 93 MB được tải một lần và chạy local; ảnh người dùng không được tải lên dịch vụ xử lý.
+- Texture Patch, Telea và Navier–Stokes được giữ làm phương án dự phòng.
+- Xem trước ảnh gốc và kết quả, dừng batch, giữ metadata khi định dạng hỗ trợ.
+- Không ghi đè ảnh nguồn và tạo `processing-report.json` sau mỗi lần chạy.
 - Hỗ trợ đường dẫn Windows có dấu và khoảng trắng.
 
 ## Chạy nhanh trên Windows
@@ -25,30 +23,30 @@ Yêu cầu: Python 3.10 trở lên.
 
 1. Tải hoặc clone repository.
 2. Bấm đúp `run.bat`.
-3. Lần đầu công cụ tự tạo `.venv` và cài thư viện.
+3. Lần đầu công cụ tự tạo `.venv`, cài thư viện và tải model AI nếu chưa có.
 4. Chọn thư mục ảnh nguồn.
-5. Xem nhanh kết quả tự động trên một vài ảnh.
-6. Bấm **Xử lý toàn bộ ảnh**; không cần chọn điểm logo.
+5. Kiểm tra preview trên một vài ảnh.
+6. Bấm **Xử lý toàn bộ ảnh**.
 
-Kết quả mặc định nằm trong:
+Kết quả mặc định:
 
 ```text
 <thư mục nguồn>\KC_Logo_Cleaned\
 ```
 
-## Thiết lập mặc định
+## Preset mặc định
 
-Preset ban đầu dành cho logo nhỏ ở góc phải dưới:
+Preset được hiệu chỉnh từ ảnh Gemini/Google Flow 1376×768 thực tế:
 
-- Chiều rộng: 4.0% ảnh.
-- Chiều cao: 7.5% ảnh.
+- Chiều rộng vùng logo: 4.0% ảnh.
+- Chiều cao vùng logo: 7.5% ảnh.
 - Lề phải: 5.0%.
 - Lề dưới: 9.3%.
 - Padding: 0.4% cạnh ngắn.
-- Mask dự phòng: hình chữ nhật bo góc.
-- Thuật toán mặc định: Texture Patch tự động.
+- Mask: hình chữ nhật bo góc.
+- Thuật toán: AI LaMa inpainting.
 
-Các giá trị này được hiệu chỉnh từ ảnh Gemini/Google Flow 1376×768 thực tế và tự co giãn theo độ phân giải. Chỉ mở **Tinh chỉnh nâng cao** nếu Google thay đổi vị trí logo trong tương lai.
+Chỉ mở **Tinh chỉnh nâng cao** nếu Google thay đổi vị trí hoặc kích thước logo.
 
 ## Dòng lệnh
 
@@ -68,7 +66,7 @@ python -m kc_logo_cleaner.cli "D:\AnhGemini" --output "D:\AnhDaXuLy"
 python -m unittest discover -s tests -v
 ```
 
-## Đóng gói bản Windows
+## Đóng gói Windows
 
 Chạy `build-exe.bat`. Kết quả nằm trong:
 
@@ -78,7 +76,7 @@ dist\KC Gemini Logo Cleaner\
 
 ## Giới hạn
 
-- Kết quả tốt nhất khi logo nhỏ và nằm cố định ở góc phải dưới.
-- Nền có chữ nhỏ, khuôn mặt hoặc đường nét rất phức tạp có thể cần điều chỉnh mask và kiểm tra thủ công.
+- Kết quả tốt nhất khi logo nhỏ và nằm đúng preset góc phải dưới.
+- AI cải thiện đáng kể vùng có đường nét và vật thể, nhưng không thể khôi phục chính xác 100% chi tiết gốc đã bị logo ghi đè.
+- Chữ nhỏ, khuôn mặt hoặc chi tiết hình học rất phức tạp ngay dưới logo vẫn cần kiểm tra preview.
 - Công cụ không tự suy đoán logo ở vị trí khác.
-- Phiên bản nhẹ này dùng tìm kiếm texture cục bộ kết hợp OpenCV; chưa đóng gói mô hình LaMa dung lượng lớn.

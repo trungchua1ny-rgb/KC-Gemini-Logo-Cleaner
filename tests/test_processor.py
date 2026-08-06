@@ -12,6 +12,12 @@ from kc_logo_cleaner.processor import collect_images, process_batch, process_ima
 
 
 class ProcessorTests(unittest.TestCase):
+    @staticmethod
+    def fast_config(**changes: object) -> MaskConfig:
+        values: dict[str, object] = {"method": "texture-patch"}
+        values.update(changes)
+        return MaskConfig(**values)  # type: ignore[arg-type]
+
     def create_test_image(self, path: Path, size: tuple[int, int] = (800, 450)) -> None:
         image = Image.new("RGB", size, "#3478A5")
         draw = ImageDraw.Draw(image)
@@ -30,7 +36,7 @@ class ProcessorTests(unittest.TestCase):
             self.create_test_image(source)
             before = source.read_bytes()
 
-            result = process_image(source, output, MaskConfig())
+            result = process_image(source, output, self.fast_config())
 
             self.assertEqual(result.status, "completed")
             self.assertEqual(source.read_bytes(), before)
@@ -44,7 +50,7 @@ class ProcessorTests(unittest.TestCase):
             source = root / "source.png"
             output = root / "output.png"
             self.create_test_image(source)
-            process_image(source, output, MaskConfig(feather_radius=0))
+            process_image(source, output, self.fast_config(feather_radius=0))
             original = np.asarray(Image.open(source).convert("RGB"))
             cleaned = np.asarray(Image.open(output).convert("RGB"))
             self.assertTrue(np.array_equal(original[:200, :400], cleaned[:200, :400]))
@@ -57,7 +63,7 @@ class ProcessorTests(unittest.TestCase):
             self.create_test_image(source, size=(1376, 768))
             original = np.asarray(Image.open(source).convert("RGB"))
 
-            result = process_image(source, output, MaskConfig())
+            result = process_image(source, output, self.fast_config())
             cleaned = np.asarray(Image.open(output).convert("RGB"))
             box = calculate_mask_box(1376, 768, MaskConfig())
 
@@ -80,7 +86,7 @@ class ProcessorTests(unittest.TestCase):
             self.create_test_image(source / "scene-001.png")
             self.create_test_image(nested / "scene-002.png")
 
-            results = process_batch(source, output, MaskConfig(), recursive=True)
+            results = process_batch(source, output, self.fast_config(), recursive=True)
 
             self.assertEqual(len(results), 2)
             self.assertTrue((output / "scene-001.png").exists())
