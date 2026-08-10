@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from kc_logo_cleaner.detector import _sparkle_template, detect_logo_box
+from kc_logo_cleaner.detector import _resolution_profile_fallback, _sparkle_template, detect_logo_box
 from kc_logo_cleaner.geometry import calculate_mask_box
 from kc_logo_cleaner.models import MaskConfig
 
@@ -32,6 +32,12 @@ class LogoDetectorTests(unittest.TestCase):
         detected, confidence = detect_logo_box(image, fallback)
         self.assertEqual(detected, fallback)
         self.assertLess(confidence, 0.3)
+
+    def test_high_resolution_gemini_export_uses_its_own_position_profile(self) -> None:
+        fallback = calculate_mask_box(2752, 1536, MaskConfig())
+        profiled = _resolution_profile_fallback(2752, 1536, fallback)
+        center = ((profiled.left + profiled.right) // 2, (profiled.top + profiled.bottom) // 2)
+        self.assertEqual(center, (2513, 1296))
 
 
 if __name__ == "__main__":

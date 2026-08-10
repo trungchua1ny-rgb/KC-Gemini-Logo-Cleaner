@@ -10,6 +10,7 @@ Công cụ Windows xử lý hàng loạt logo nhìn thấy ở góc phải dư�
 - Quét thư mục con và giữ nguyên cấu trúc thư mục đầu ra.
 - Quét một vùng an toàn ở góc phải dưới, dò hình ngôi sao Gemini và tự căn lại mask; không cần bấm chọn điểm.
 - Khi nhận diện đủ tin cậy, mask bám theo hình ngôi sao thay vì xóa toàn bộ ô tìm kiếm.
+- Có profile tọa độ riêng cho ảnh Google Flow 1376×768 và ảnh Gemini trực tiếp 2752×1536.
 - AI LaMa inpainting dùng vùng ngữ cảnh rộng để phục hồi vật thể, đường nét và texture tự nhiên hơn.
 - Chỉ compositing vùng mask; các pixel ngoài vùng xử lý được giữ nguyên.
 - Model AI khoảng 93 MB được tải một lần và chạy local; ảnh người dùng không được tải lên dịch vụ xử lý.

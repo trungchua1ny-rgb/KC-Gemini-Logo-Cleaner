@@ -29,6 +29,19 @@ def _sparkle_template(size: int) -> np.ndarray:
     return cv2.GaussianBlur(canvas, (5, 5), 0)
 
 
+def _resolution_profile_fallback(width: int, height: int, fallback: MaskBox) -> MaskBox:
+    """Use the distinct watermark placement of Gemini's 2752x1536 exports."""
+    aspect_ratio = width / max(height, 1)
+    if width < 2000 or abs(aspect_ratio - (16 / 9)) > 0.04:
+        return fallback
+
+    center_x = round(width * 0.913)
+    center_y = round(height * 0.844)
+    left = max(0, min(width - fallback.width, center_x - fallback.width // 2))
+    top = max(0, min(height - fallback.height, center_y - fallback.height // 2))
+    return MaskBox(left=left, top=top, right=left + fallback.width, bottom=top + fallback.height)
+
+
 def detect_logo_box(rgb_array: np.ndarray, fallback: MaskBox) -> tuple[MaskBox, float]:
     """Refine the fixed Gemini position using a local sparkle-shape search.
 
@@ -37,10 +50,11 @@ def detect_logo_box(rgb_array: np.ndarray, fallback: MaskBox) -> tuple[MaskBox, 
     elsewhere in the image from being mistaken for the logo.
     """
     height, width = rgb_array.shape[:2]
+    fallback = _resolution_profile_fallback(width, height, fallback)
     scale = max(0.5, min(width / 1376.0, height / 768.0))
     expected_x = (fallback.left + fallback.right) // 2
     expected_y = (fallback.top + fallback.bottom) // 2
-    radius = max(round(45 * scale), round(max(fallback.width, fallback.height) * 0.55))
+    radius = max(round(70 * scale), round(max(fallback.width, fallback.height) * 0.75))
 
     search_left = max(0, expected_x - radius)
     search_top = max(0, expected_y - radius)
@@ -73,7 +87,7 @@ def detect_logo_box(rgb_array: np.ndarray, fallback: MaskBox) -> tuple[MaskBox, 
 
     # Only trust a visible shape. When the mark blends into a white background,
     # the enlarged calibrated mask remains safer than following a false match.
-    if best_center is None or (best_score < 0.30 and best_raw_score < 0.50):
+    if best_center is None or (best_score < 0.24 and best_raw_score < 0.45):
         return fallback, max(0.0, best_score)
 
     center_x, center_y = best_center
@@ -81,4 +95,3 @@ def detect_logo_box(rgb_array: np.ndarray, fallback: MaskBox) -> tuple[MaskBox, 
     top = max(0, min(height - fallback.height, center_y - fallback.height // 2))
     refined = MaskBox(left=left, top=top, right=left + fallback.width, bottom=top + fallback.height)
     return refined, min(1.0, max(0.0, best_raw_score))
-
