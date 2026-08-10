@@ -13,8 +13,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output", type=Path, help="Thư mục kết quả")
     parser.add_argument("--width", type=float, default=5.2, help="Chiều rộng vùng logo theo %")
     parser.add_argument("--height", type=float, default=9.4, help="Chiều cao vùng logo theo %")
-    parser.add_argument("--right", type=float, default=4.7, help="Lề phải theo %")
-    parser.add_argument("--bottom", type=float, default=8.9, help="Lề dưới theo %")
+    parser.add_argument("--right", type=float, default=4.4, help="Lề phải theo %")
+    parser.add_argument("--bottom", type=float, default=7.9, help="Lề dưới theo %")
     parser.add_argument("--padding", type=float, default=0.8, help="Padding theo cạnh ngắn, đơn vị %")
     parser.add_argument("--no-recursive", action="store_true", help="Không quét thư mục con")
     return parser

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Iterable
@@ -10,6 +11,7 @@ import cv2
 import numpy as np
 from PIL import Image, ImageOps
 
+from .detector import detect_logo_box
 from .geometry import MaskBox, calculate_mask_box
 from .lama_engine import LamaModelError, lama_inpaint
 from .models import MaskConfig, ProcessingResult
@@ -206,8 +208,13 @@ def clean_array(rgb_array: np.ndarray, config: MaskConfig) -> tuple[np.ndarray, 
         raise ValueError("Ảnh đầu vào phải ở định dạng RGB.")
 
     height, width = rgb_array.shape[:2]
-    box = calculate_mask_box(width, height, config)
-    mask = create_mask(width, height, box, config)
+    nominal_box = calculate_mask_box(width, height, config)
+    box, confidence = detect_logo_box(rgb_array, nominal_box)
+    # A clearly detected sparkle gets a shape-aware mask, so surrounding
+    # object pixels are preserved. Low-confidence cases use the larger safe
+    # rounded mask at the calibrated position.
+    mask_config = replace(config, shape="gemini-sparkle") if confidence >= 0.30 else config
+    mask = create_mask(width, height, box, mask_config)
     if config.method == "lama-ai":
         try:
             return lama_inpaint(rgb_array, mask, box, config.feather_radius), box

@@ -18,8 +18,8 @@ class MaskConfig:
     # placement differences between Gemini exports.
     width_percent: float = 5.2
     height_percent: float = 9.4
-    right_margin_percent: float = 4.7
-    bottom_margin_percent: float = 8.9
+    right_margin_percent: float = 4.4
+    bottom_margin_percent: float = 7.9
     padding_percent: float = 0.8
     inpaint_radius: float = 4.0
     feather_radius: int = 3

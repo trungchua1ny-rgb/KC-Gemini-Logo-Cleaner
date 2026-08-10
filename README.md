@@ -8,7 +8,8 @@ Công cụ Windows xử lý hàng loạt logo nhìn thấy ở góc phải dư�
 
 - Xử lý PNG, JPG, JPEG, WebP, BMP và TIFF theo thư mục.
 - Quét thư mục con và giữ nguyên cấu trúc thư mục đầu ra.
-- Tự xác định vùng logo Gemini góc phải dưới, co giãn theo độ phân giải; không cần bấm chọn điểm.
+- Quét một vùng an toàn ở góc phải dưới, dò hình ngôi sao Gemini và tự căn lại mask; không cần bấm chọn điểm.
+- Khi nhận diện đủ tin cậy, mask bám theo hình ngôi sao thay vì xóa toàn bộ ô tìm kiếm.
 - AI LaMa inpainting dùng vùng ngữ cảnh rộng để phục hồi vật thể, đường nét và texture tự nhiên hơn.
 - Chỉ compositing vùng mask; các pixel ngoài vùng xử lý được giữ nguyên.
 - Model AI khoảng 93 MB được tải một lần và chạy local; ảnh người dùng không được tải lên dịch vụ xử lý.
@@ -40,8 +41,8 @@ Preset được hiệu chỉnh từ ảnh Gemini/Google Flow 1376×768 thực t�
 
 - Chiều rộng vùng logo: 5.2% ảnh.
 - Chiều cao vùng logo: 9.4% ảnh.
-- Lề phải: 4.7%.
-- Lề dưới: 8.9%.
+- Lề phải dự phòng: 4.4%.
+- Lề dưới dự phòng: 7.9%.
 - Padding an toàn: 0.8% cạnh ngắn.
 - Mask: hình chữ nhật bo góc.
 - Thuật toán: AI LaMa inpainting.

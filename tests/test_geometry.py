@@ -21,7 +21,7 @@ class MaskGeometryTests(unittest.TestCase):
 
     def test_preset_matches_calibrated_gemini_output(self) -> None:
         box = calculate_mask_box(1376, 768, MaskConfig())
-        self.assertEqual(box, type(box)(left=1233, top=622, right=1317, bottom=706))
+        self.assertEqual(box, type(box)(left=1237, top=629, right=1321, bottom=713))
 
     def test_invalid_config_is_rejected(self) -> None:
         with self.assertRaises(ValueError):

@@ -8,7 +8,7 @@ from kc_logo_cleaner.lama_engine import _context_crop, _soft_composite
 
 class LamaEngineTests(unittest.TestCase):
     def test_context_crop_stays_inside_image_and_contains_logo(self) -> None:
-        box = MaskBox(left=1233, top=622, right=1317, bottom=706)
+        box = MaskBox(left=1237, top=629, right=1321, bottom=713)
         left, top, right, bottom = _context_crop(1376, 768, box)
         self.assertEqual(right - left, bottom - top)
         self.assertGreaterEqual(right - left, 512)

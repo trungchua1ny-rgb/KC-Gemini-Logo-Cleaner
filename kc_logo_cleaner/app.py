@@ -9,7 +9,6 @@ from tkinter import filedialog, messagebox, ttk
 
 from PIL import Image, ImageDraw, ImageTk
 
-from .geometry import calculate_mask_box
 from .models import MaskConfig, ProcessingResult
 from .processor import clean_array, collect_images, load_image, process_batch
 
@@ -39,8 +38,8 @@ class LogoCleanerApp(tk.Tk):
         self.recursive_var = tk.BooleanVar(value=True)
         self.width_var = tk.DoubleVar(value=5.2)
         self.height_var = tk.DoubleVar(value=9.4)
-        self.right_var = tk.DoubleVar(value=4.7)
-        self.bottom_var = tk.DoubleVar(value=8.9)
+        self.right_var = tk.DoubleVar(value=4.4)
+        self.bottom_var = tk.DoubleVar(value=7.9)
         self.padding_var = tk.DoubleVar(value=0.8)
         self.radius_var = tk.DoubleVar(value=4.0)
         self.method_var = tk.StringVar(value="lama-ai")
@@ -109,7 +108,7 @@ class LogoCleanerApp(tk.Tk):
         ttk.Label(settings, text="TỰ ĐỘNG XÁC ĐỊNH LOGO", style="CardTitle.TLabel").pack(anchor="w", pady=(0, 10))
         ttk.Label(
             settings,
-            text="Không cần bấm chọn điểm. App tự dùng vị trí chuẩn của logo Gemini ở góc phải dưới và co giãn theo độ phân giải ảnh.",
+            text="App quét một vùng an toàn ở góc phải dưới, tự tìm hình logo Gemini rồi chỉ phục hồi vùng nhỏ quanh logo.",
             style="PanelMuted.TLabel",
             wraplength=245,
             justify="left",
@@ -137,7 +136,7 @@ class LogoCleanerApp(tk.Tk):
         ai_badge.pack(fill="x", pady=(0, 10))
         ttk.Label(
             settings,
-            text="Vị trí chuẩn: tâm khoảng 93% chiều rộng và 87% chiều cao ảnh.",
+            text="Nếu logo khó nhìn, app dùng vùng dự phòng lớn đã hiệu chỉnh thay vì chọn nhầm vật thể khác.",
             style="PanelMuted.TLabel",
             wraplength=245,
             justify="left",
@@ -282,8 +281,8 @@ class LogoCleanerApp(tk.Tk):
     def reset_preset(self) -> None:
         self.width_var.set(5.2)
         self.height_var.set(9.4)
-        self.right_var.set(4.7)
-        self.bottom_var.set(8.9)
+        self.right_var.set(4.4)
+        self.bottom_var.set(7.9)
         self.padding_var.set(0.8)
         self.radius_var.set(4.0)
         self.method_var.set("lama-ai")
@@ -331,15 +330,13 @@ class LogoCleanerApp(tk.Tk):
             config = self._config()
             image, _metadata = load_image(path)
             rgb = image.convert("RGB")
-            box = calculate_mask_box(rgb.width, rgb.height, config)
+            import numpy as np
+
+            cleaned_array, box = clean_array(np.asarray(rgb, dtype=np.uint8), config)
             marked = rgb.copy()
             draw = ImageDraw.Draw(marked)
             line_width = max(2, round(min(rgb.size) * 0.003))
             draw.rectangle((box.left, box.top, box.right, box.bottom), outline=ERROR, width=line_width)
-
-            import numpy as np
-
-            cleaned_array, _ = clean_array(np.asarray(rgb, dtype=np.uint8), config)
             cleaned = Image.fromarray(cleaned_array)
             self._show_preview(marked, cleaned)
             self.status_var.set(f"Đang xem: {path.name} · {rgb.width}×{rgb.height}")
