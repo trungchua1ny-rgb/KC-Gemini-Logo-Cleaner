@@ -7,7 +7,7 @@ from kc_logo_cleaner.models import MaskConfig
 class MaskGeometryTests(unittest.TestCase):
     def test_default_mask_is_in_bottom_right(self) -> None:
         box = calculate_mask_box(1920, 1080, MaskConfig())
-        self.assertGreater(box.left, 1920 * 0.9)
+        self.assertGreater(box.left, 1920 * 0.89)
         self.assertGreater(box.top, 1080 * 0.8)
         self.assertLessEqual(box.right, 1920)
         self.assertLessEqual(box.bottom, 1080)
@@ -21,7 +21,7 @@ class MaskGeometryTests(unittest.TestCase):
 
     def test_preset_matches_calibrated_gemini_output(self) -> None:
         box = calculate_mask_box(1376, 768, MaskConfig())
-        self.assertEqual(box, type(box)(left=1249, top=636, right=1310, bottom=700))
+        self.assertEqual(box, type(box)(left=1233, top=622, right=1317, bottom=706))
 
     def test_invalid_config_is_rejected(self) -> None:
         with self.assertRaises(ValueError):

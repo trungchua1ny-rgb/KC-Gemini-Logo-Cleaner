@@ -13,11 +13,14 @@ MaskShape = Literal["gemini-sparkle", "rounded-rectangle", "ellipse"]
 class MaskConfig:
     # Calibrated from real 1376×768 Gemini/Google Flow image outputs.
     # The values remain proportional for other output resolutions.
-    width_percent: float = 4.0
-    height_percent: float = 7.5
-    right_margin_percent: float = 5.0
-    bottom_margin_percent: float = 9.3
-    padding_percent: float = 0.4
+    # The mask deliberately includes a safety ring around the visible mark.
+    # LaMa needs this extra area to remove the faint halo and tolerate small
+    # placement differences between Gemini exports.
+    width_percent: float = 5.2
+    height_percent: float = 9.4
+    right_margin_percent: float = 4.7
+    bottom_margin_percent: float = 8.9
+    padding_percent: float = 0.8
     inpaint_radius: float = 4.0
     feather_radius: int = 3
     method: InpaintMethod = "lama-ai"

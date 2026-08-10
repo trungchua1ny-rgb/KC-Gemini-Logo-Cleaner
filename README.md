@@ -38,11 +38,11 @@ Kết quả mặc định:
 
 Preset được hiệu chỉnh từ ảnh Gemini/Google Flow 1376×768 thực tế:
 
-- Chiều rộng vùng logo: 4.0% ảnh.
-- Chiều cao vùng logo: 7.5% ảnh.
-- Lề phải: 5.0%.
-- Lề dưới: 9.3%.
-- Padding: 0.4% cạnh ngắn.
+- Chiều rộng vùng logo: 5.2% ảnh.
+- Chiều cao vùng logo: 9.4% ảnh.
+- Lề phải: 4.7%.
+- Lề dưới: 8.9%.
+- Padding an toàn: 0.8% cạnh ngắn.
 - Mask: hình chữ nhật bo góc.
 - Thuật toán: AI LaMa inpainting.
 
